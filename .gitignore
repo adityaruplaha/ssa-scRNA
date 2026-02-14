@@ -1,0 +1,20 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Ruff
+.ruff-cache/
+
+# AI-generated files
+ai-outputs/
+
+# Examples: ignore outputs, keep source scripts
+examples/*/*
+!examples/*/*.py
