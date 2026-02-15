@@ -40,22 +40,18 @@ FIGURE_FORMAT = "png"
 # Unified color palette for all cell types and labels.
 # "unknown" is assigned a neutral gray (appears hollow when edge-colored).
 UNIFIED_PALETTE = {
-    # Cell type seeds
-    "Myeloid": "#1f77b4",
-    "Dendritic": "#ff7f0e",
-    "Mast": "#2ca02c",
-    "Keratinocyte": "#d62728",
-    "Epithelial": "#9467bd",
-    "Endothelial": "#8c564b",
-    "Fibroblast": "#e377c2",
-    "SmoothMuscle": "#7f7f7f",
-    "Pericyte": "#bcbd22",
-    "Melanocyte": "#17becf",
-    "Schwann": "#1f77b4",
-    "Adipocyte": "#aec7e8",
-    "Hepatocyte": "#ffbb78",
-    "SweatGland": "#98df8a",
-    "Sebaceous": "#c5b0d5",
+    # PBMC cell types
+    "CD8+/CD45RA+ Naive Cytotoxic": "#1f77b4",
+    "CD4+/CD25 T Reg": "#ff7f0e",
+    "CD8+ Cytotoxic T": "#2ca02c",
+    "CD56+ NK": "#d62728",
+    "CD19+ B": "#9467bd",
+    "CD14+ Monocyte": "#8c564b",
+    "CD4+/CD45RO+ Memory": "#e377c2",
+    "CD4+/CD45RA+/CD25- Naive T": "#7f7f7f",
+    "Dendritic": "#bcbd22",
+    "CD34+": "#17becf",
+    "CD4+ T Helper2": "#aec7e8",
     # Unknown/unlabeled
     "unknown": "#cccccc",
     # Boolean fields (from is_confident, etc.)
@@ -467,21 +463,185 @@ def plot_ssa_umaps(
 
 
 PBMC_MARKERS = {
-    "Myeloid": ["LYZ", "S100A8", "S100A9", "LST1", "ITGAM"],
-    "Dendritic": ["ITGAX", "CD1C", "CLEC10A", "HLA-DRA", "CCR7"],
-    "Mast": ["TPSAB1", "CPA3", "KIT", "MS4A2", "HDC"],
-    "Keratinocyte": ["KRT1", "KRT5", "KRT14", "KRT10", "DSG1"],  # epithelial/skin
-    "Epithelial": ["EPCAM", "KRT8", "KRT18", "KRT19", "KRT7"],  # generic epithelial
-    "Endothelial": ["PECAM1", "VWF", "KDR", "CDH5", "CLDN5"],
-    "Fibroblast": ["COL1A1", "COL1A2", "DCN", "LUM", "PDGFRA"],
-    "SmoothMuscle": ["ACTA2", "MYH11", "TAGLN", "CNN1", "CALD1"],
-    "Pericyte": ["RGS5", "PDGFRB", "MCAM", "KCNJ8", "ABCC9"],
-    "Melanocyte": ["PMEL", "MLANA", "TYR", "DCT", "MITF"],
-    "Schwann": ["MPZ", "MBP", "PMP22", "SOX10", "PLP1"],
-    "Adipocyte": ["ADIPOQ", "PLIN1", "CFD", "FABP4", "LEP"],
-    "Hepatocyte": ["ALB", "TF", "APOB", "SERPINA1", "TTR"],
-    "SweatGland": ["KRT7", "KRT18", "MUC1", "SCGB2A2", "AQP5"],
-    "Sebaceous": ["SOX9", "KRT7", "KRT8", "KRT18", "MUC1"],
+    # -------------------------------------------------
+    # CD8+/CD45RA+ Naive Cytotoxic (naive CD8 T)
+    # -------------------------------------------------
+    "CD8+/CD45RA+ Naive Cytotoxic": [
+        "CD3D",
+        "CD3E",
+        "TRAC",
+        "CD8A",
+        "CD8B",
+        "CCR7",
+        "LEF1",
+        "TCF7",
+        "LTB",
+        "IL7R",
+        "MAL",
+        "LST1",  # (optional; remove LST1 if you see myeloid leakage)
+    ],
+    # -------------------------------------------------
+    # CD4+/CD25 T Reg (Treg)
+    # -------------------------------------------------
+    "CD4+/CD25 T Reg": [
+        "CD3D",
+        "CD3E",
+        "TRAC",
+        "CD4",
+        "IL2RA",
+        "FOXP3",
+        "IKZF2",
+        "CTLA4",
+        "TIGIT",
+        "TNFRSF18",
+        "CCR7",
+        "LTB",
+    ],
+    # -------------------------------------------------
+    # CD8+ Cytotoxic T
+    # -------------------------------------------------
+    "CD8+ Cytotoxic T": [
+        "CD3D",
+        "CD3E",
+        "TRAC",
+        "CD8A",
+        "CD8B",
+        "NKG7",
+        "GNLY",
+        "GZMB",
+        "GZMH",
+        "PRF1",
+        "CTSW",
+        "KLRD1",
+        "CCL5",
+    ],
+    # -------------------------------------------------
+    # CD56+ NK
+    # -------------------------------------------------
+    "CD56+ NK": [
+        "NKG7",
+        "GNLY",
+        "PRF1",
+        "GZMB",
+        "GZMH",
+        "CTSW",
+        "KLRD1",
+        "FCGR3A",
+        "TRDC",  # optional (rare)
+        "XCL1",
+        "XCL2",
+    ],
+    # -------------------------------------------------
+    # CD19+ B
+    # -------------------------------------------------
+    "CD19+ B": [
+        "MS4A1",
+        "CD79A",
+        "CD79B",
+        "CD74",
+        "HLA-DRA",
+        "HLA-DRB1",
+        "CD37",
+        "CD19",
+        "BANK1",
+        "CD22",
+        "CD83",  # activation sometimes
+    ],
+    # -------------------------------------------------
+    # CD14+ Monocyte (classical monocytes)
+    # -------------------------------------------------
+    "CD14+ Monocyte": [
+        "LYZ",
+        "S100A8",
+        "S100A9",
+        "CTSS",
+        "FCN1",
+        "LGALS3",
+        "LST1",
+        "TYROBP",
+        "FCER1G",
+        "CTSD",
+        "MNDA",
+        "IL1B",
+    ],
+    # -------------------------------------------------
+    # CD4+/CD45RO+ Memory
+    # -------------------------------------------------
+    "CD4+/CD45RO+ Memory": [
+        "CD3D",
+        "CD3E",
+        "TRAC",
+        "CD4",
+        "IL7R",
+        "LTB",
+        "CCR7",  # central memory
+        "MAL",
+        "NOSIP",
+        "TCF7",
+        "LEF1",  # may be lower than naive
+        "CXCR4",
+    ],
+    # -------------------------------------------------
+    # CD4+/CD45RA+/CD25- Naive T (naive CD4)
+    # -------------------------------------------------
+    "CD4+/CD45RA+/CD25- Naive T": [
+        "CD3D",
+        "CD3E",
+        "TRAC",
+        "CD4",
+        "CCR7",
+        "LEF1",
+        "TCF7",
+        "IL7R",
+        "LTB",
+        "MAL",
+        "NOSIP",
+        "LST1",  # optional; remove if contaminating monocytes
+    ],
+    # -------------------------------------------------
+    # Dendritic (cDC / pDC mixed depending on dataset)
+    # -------------------------------------------------
+    "Dendritic": [
+        "FCER1A",
+        "CD1C",
+        "CLEC10A",  # cDC2
+        "ITGAX",
+        "LILRA4",  # ITGAX general DC; LILRA4 pDC
+        "GZMB",  # pDC hallmark (often)
+        "HLA-DRA",
+        "HLA-DRB1",
+        "IRF7",
+    ],
+    # -------------------------------------------------
+    # CD34+ (HSPC / progenitors)
+    # -------------------------------------------------
+    "CD34+": [
+        "CD34",
+        "SPINK2",
+        "GATA2",
+        "MPO",  # may indicate myeloid progenitors
+        "HBB",  # remove if RBC contamination
+        "TYMP",
+        "MEIS1",
+        "AVP",  # optional depending on platform
+    ],
+    # -------------------------------------------------
+    # CD4+ T Helper2 (rare; dataset has 19 cells)
+    # -------------------------------------------------
+    "CD4+ T Helper2": [
+        "CD3D",
+        "CD3E",
+        "TRAC",
+        "CD4",
+        "IL7R",
+        "GATA3",
+        "IL4",
+        "IL5",
+        "IL13",
+        "CCR4",
+        "CCR6",
+        "ICOS",
+    ],
 }
 
 

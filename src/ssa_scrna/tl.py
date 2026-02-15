@@ -156,7 +156,7 @@ def label(
 
     # Batch processing for lists and dicts, in parallel using ThreadPoolExecutor
     if isinstance(strategies, (list, tuple, dict)):
-        tasks: List[Tuple[BaseLabelingStrategy, Optional[str]]] = []
+        tasks: List[Tuple[BaseLabelingStrategy, str | None]] = []
 
         if isinstance(strategies, dict):
             # Dict: Key explicitly provided by user
