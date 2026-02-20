@@ -2,7 +2,7 @@ import pandas as pd
 from anndata import AnnData
 from sklearn.neighbors import KNeighborsClassifier
 
-from .base import LabelingResult
+from ..base import LabelingResult
 from .ml_base import BaseMLPropagation
 
 

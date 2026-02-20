@@ -7,7 +7,6 @@ Tests the main dispatcher function `ssa.tl.label` which handles:
 - Batch execution with dicts (custom-named)
 """
 
-
 from ssa_scrna import strategies, tl
 
 
@@ -16,9 +15,7 @@ class TestLabelDispatcher:
 
     def test_single_strategy_execution(self, synthetic_adata, marker_dict):
         """Test dispatching a single strategy with explicit key."""
-        strategy = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict, quantile=0.9, min_score=0.01
-        )
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01)
 
         result = tl.label(synthetic_adata, strategy, key_added="my_labels")
 
@@ -32,9 +29,7 @@ class TestLabelDispatcher:
 
     def test_single_strategy_auto_named(self, synthetic_adata, marker_dict):
         """Test that single strategy gets auto-named based on strategy.name if key_added is None."""
-        strategy = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict, quantile=0.9, min_score=0.01
-        )
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01)
 
         result = tl.label(synthetic_adata, strategy, key_added=None)
 
@@ -50,8 +45,8 @@ class TestLabelDispatcher:
     def test_batch_list_auto_named(self, synthetic_adata, marker_dict):
         """Test batch execution with list generates auto-names for each strategy."""
         strategies_list = [
-            strategies.QCQAdaptiveThresholding(markers=marker_dict, quantile=0.9, min_score=0.01),
-            strategies.OtsuAdaptiveThresholding(markers=marker_dict, bins=256, min_score=0.01),
+            strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01),
+            strategies.OtsuAdaptiveSeeding(markers=marker_dict, bins=256, min_score=0.01),
         ]
 
         result = tl.label(synthetic_adata, strategies_list, n_jobs=2)
@@ -72,10 +67,10 @@ class TestLabelDispatcher:
     def test_batch_dict_custom_named(self, synthetic_adata, marker_dict):
         """Test batch execution with dict uses custom names."""
         strategies_dict = {
-            "seeds_strict": strategies.QCQAdaptiveThresholding(
+            "seeds_strict": strategies.QCQAdaptiveSeeding(
                 markers=marker_dict, quantile=0.95, min_score=0.02
             ),
-            "seeds_loose": strategies.QCQAdaptiveThresholding(
+            "seeds_loose": strategies.QCQAdaptiveSeeding(
                 markers=marker_dict, quantile=0.8, min_score=0.001
             ),
         }
@@ -98,12 +93,8 @@ class TestLabelDispatcher:
         the same set of cells (expected behavior).
         """
         strategies_dict = {
-            "qcq": strategies.QCQAdaptiveThresholding(
-                markers=marker_dict, quantile=0.9, min_score=0.01
-            ),
-            "otsu": strategies.OtsuAdaptiveThresholding(
-                markers=marker_dict, bins=256, min_score=0.01
-            ),
+            "qcq": strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01),
+            "otsu": strategies.OtsuAdaptiveSeeding(markers=marker_dict, bins=256, min_score=0.01),
         }
 
         result = tl.label(synthetic_adata, strategies_dict, n_jobs=2)
@@ -124,8 +115,8 @@ class TestLabelDispatcher:
     def test_batch_with_graph_score(self, synthetic_adata, marker_dict):
         """Test batch execution including GraphScorePropagation strategy."""
         strategies_list = [
-            strategies.OtsuAdaptiveThresholding(markers=marker_dict, bins=256, min_score=0.01),
-            strategies.GraphScorePropagation(
+            strategies.OtsuAdaptiveSeeding(markers=marker_dict, bins=256, min_score=0.01),
+            strategies.GraphScoreSeeding(
                 markers=marker_dict,
                 alpha=0.8,
                 n_iterations=10,
@@ -149,8 +140,8 @@ class TestLabelDispatcher:
     def test_n_jobs_parameter(self, synthetic_adata, marker_dict):
         """Test that n_jobs parameter is respected (batch mode only)."""
         strategies_list = [
-            strategies.QCQAdaptiveThresholding(markers=marker_dict, quantile=0.9, min_score=0.01),
-            strategies.OtsuAdaptiveThresholding(markers=marker_dict, bins=256, min_score=0.01),
+            strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01),
+            strategies.OtsuAdaptiveSeeding(markers=marker_dict, bins=256, min_score=0.01),
         ]
 
         # Should work with different n_jobs values
@@ -162,9 +153,7 @@ class TestLabelDispatcher:
 
     def test_result_contains_labeling_result_objects(self, synthetic_adata, marker_dict):
         """Test that returned dict values are LabelingResult objects."""
-        strategy = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict, quantile=0.9, min_score=0.01
-        )
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01)
 
         result = tl.label(synthetic_adata, strategy, key_added="test")
 
@@ -176,9 +165,7 @@ class TestLabelDispatcher:
 
     def test_labeling_result_attributes(self, synthetic_adata, marker_dict):
         """Test that LabelingResult has expected attributes."""
-        strategy = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict, quantile=0.9, min_score=0.01
-        )
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01)
 
         result = tl.label(synthetic_adata, strategy, key_added="attrs_test")
         labeling_result = result["attrs_test"]
@@ -218,7 +205,7 @@ class TestLabelDispatcher:
         (This depends on error handling in tl.label)
         """
         # Create strategies: one should work, one should fail (missing seed_key)
-        good_strategy = strategies.QCQAdaptiveThresholding(
+        good_strategy = strategies.QCQAdaptiveSeeding(
             markers={"Class A": ["gene_0", "gene_1"]}, quantile=0.9, min_score=0.01
         )
 
@@ -237,8 +224,8 @@ class TestLabelDispatcher:
         """
         # Use the same strategy twice (same type, so same name)
         strategies_list = [
-            strategies.QCQAdaptiveThresholding(markers=marker_dict, quantile=0.9, min_score=0.01),
-            strategies.QCQAdaptiveThresholding(markers=marker_dict, quantile=0.95, min_score=0.02),
+            strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01),
+            strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.95, min_score=0.02),
         ]
 
         result = tl.label(synthetic_adata, strategies_list, n_jobs=2)

@@ -2,7 +2,7 @@ from abc import ABC
 
 from anndata import AnnData
 
-from .base import BaseLabelingStrategy
+from ..base import BaseLabelingStrategy
 
 
 class BaseMLPropagation(BaseLabelingStrategy, ABC):

@@ -17,7 +17,7 @@ class TestUbiquitousGenePattern:
 
     def test_ubiquitous_qcq_robustness(self, adata_ubiquitous_shared, marker_dict_ubiquitous):
         """QCQ should handle strong ubiquitous background signal."""
-        strategy = strategies.QCQAdaptiveThresholding(
+        strategy = strategies.QCQAdaptiveSeeding(
             markers=marker_dict_ubiquitous, quantile=0.85, min_score=0.01
         )
         result = tl.label(adata_ubiquitous_shared, strategy, key_added="qcq_labels")
@@ -42,9 +42,7 @@ class TestUbiquitousGenePattern:
 
     def test_ubiquitous_otsu_robustness(self, adata_ubiquitous_shared, marker_dict_ubiquitous):
         """Otsu should handle strong ubiquitous background signal."""
-        strategy = strategies.OtsuAdaptiveThresholding(
-            markers=marker_dict_ubiquitous, min_score=0.01
-        )
+        strategy = strategies.OtsuAdaptiveSeeding(markers=marker_dict_ubiquitous, min_score=0.01)
         result = tl.label(adata_ubiquitous_shared, strategy, key_added="otsu_labels")
         labeling_result = result["otsu_labels"]
 
@@ -63,9 +61,7 @@ class TestUbiquitousGenePattern:
         self, adata_ubiquitous_shared, marker_dict_ubiquitous
     ):
         """GraphScore should leverage neighbor structure despite ubiquitous signal."""
-        strategy = strategies.GraphScorePropagation(
-            markers=marker_dict_ubiquitous, propagation_steps=3
-        )
+        strategy = strategies.GraphScoreSeeding(markers=marker_dict_ubiquitous, propagation_steps=3)
         result = tl.label(adata_ubiquitous_shared, strategy, key_added="graph_labels")
         labeling_result = result["graph_labels"]
 
@@ -79,13 +75,13 @@ class TestUbiquitousGenePattern:
         # Create individual labels for consensus
         adata = adata_ubiquitous_shared.copy()
 
-        strategy1 = strategies.QCQAdaptiveThresholding(markers=marker_dict_ubiquitous, quantile=0.9)
+        strategy1 = strategies.QCQAdaptiveSeeding(markers=marker_dict_ubiquitous, quantile=0.9)
         tl.label(adata, strategy1, key_added="labels_1")
 
-        strategy2 = strategies.OtsuAdaptiveThresholding(markers=marker_dict_ubiquitous)
+        strategy2 = strategies.OtsuAdaptiveSeeding(markers=marker_dict_ubiquitous)
         tl.label(adata, strategy2, key_added="labels_2")
 
-        strategy3 = strategies.GraphScorePropagation(markers=marker_dict_ubiquitous)
+        strategy3 = strategies.GraphScoreSeeding(markers=marker_dict_ubiquitous)
         tl.label(adata, strategy3, key_added="labels_3")
 
         # Consensus voting
@@ -108,7 +104,7 @@ class TestHighlySpecificPattern:
         self, adata_highly_specific, marker_dict_highly_specific
     ):
         """QCQ should excel with non-overlapping markers."""
-        strategy = strategies.QCQAdaptiveThresholding(
+        strategy = strategies.QCQAdaptiveSeeding(
             markers=marker_dict_highly_specific, quantile=0.9, min_score=0.01
         )
         result = tl.label(adata_highly_specific, strategy, key_added="qcq_labels")
@@ -128,7 +124,7 @@ class TestHighlySpecificPattern:
         self, adata_highly_specific, marker_dict_highly_specific
     ):
         """Otsu should benefit from sharp marker separation."""
-        strategy = strategies.OtsuAdaptiveThresholding(
+        strategy = strategies.OtsuAdaptiveSeeding(
             markers=marker_dict_highly_specific, min_score=0.01
         )
         result = tl.label(adata_highly_specific, strategy, key_added="otsu_labels")
@@ -147,7 +143,7 @@ class TestHighlySpecificPattern:
         self, adata_highly_specific, marker_dict_highly_specific
     ):
         """GraphScore should maintain neighbor structure with clean separation."""
-        strategy = strategies.GraphScorePropagation(
+        strategy = strategies.GraphScoreSeeding(
             markers=marker_dict_highly_specific, propagation_steps=3
         )
         result = tl.label(adata_highly_specific, strategy, key_added="graph_labels")
@@ -163,15 +159,13 @@ class TestHighlySpecificPattern:
         """Consensus voting should produce high-confidence calls."""
         adata = adata_highly_specific.copy()
 
-        strategy1 = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict_highly_specific, quantile=0.9
-        )
+        strategy1 = strategies.QCQAdaptiveSeeding(markers=marker_dict_highly_specific, quantile=0.9)
         tl.label(adata, strategy1, key_added="labels_1")
 
-        strategy2 = strategies.OtsuAdaptiveThresholding(markers=marker_dict_highly_specific)
+        strategy2 = strategies.OtsuAdaptiveSeeding(markers=marker_dict_highly_specific)
         tl.label(adata, strategy2, key_added="labels_2")
 
-        strategy3 = strategies.GraphScorePropagation(markers=marker_dict_highly_specific)
+        strategy3 = strategies.GraphScoreSeeding(markers=marker_dict_highly_specific)
         tl.label(adata, strategy3, key_added="labels_3")
 
         strategy_consensus = strategies.ConsensusVoting(
@@ -194,7 +188,7 @@ class TestHierarchicalOverlapPattern:
         self, adata_hierarchical_overlap, marker_dict_hierarchical
     ):
         """QCQ should handle hierarchical gene overlap."""
-        strategy = strategies.QCQAdaptiveThresholding(
+        strategy = strategies.QCQAdaptiveSeeding(
             markers=marker_dict_hierarchical, quantile=0.9, min_score=0.01
         )
         result = tl.label(adata_hierarchical_overlap, strategy, key_added="qcq_labels")
@@ -214,9 +208,7 @@ class TestHierarchicalOverlapPattern:
         self, adata_hierarchical_overlap, marker_dict_hierarchical
     ):
         """Otsu should discriminate despite hierarchical overlap."""
-        strategy = strategies.OtsuAdaptiveThresholding(
-            markers=marker_dict_hierarchical, min_score=0.01
-        )
+        strategy = strategies.OtsuAdaptiveSeeding(markers=marker_dict_hierarchical, min_score=0.01)
         result = tl.label(adata_hierarchical_overlap, strategy, key_added="otsu_labels")
         labeling_result = result["otsu_labels"]
 
@@ -228,7 +220,7 @@ class TestHierarchicalOverlapPattern:
         self, adata_hierarchical_overlap, marker_dict_hierarchical
     ):
         """GraphScore should leverage tree structure via neighbors."""
-        strategy = strategies.GraphScorePropagation(
+        strategy = strategies.GraphScoreSeeding(
             markers=marker_dict_hierarchical, propagation_steps=3
         )
         result = tl.label(adata_hierarchical_overlap, strategy, key_added="graph_labels")
@@ -247,15 +239,13 @@ class TestHierarchicalOverlapPattern:
         """Consensus voting should converge despite tree hierarchy."""
         adata = adata_hierarchical_overlap.copy()
 
-        strategy1 = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict_hierarchical, quantile=0.9
-        )
+        strategy1 = strategies.QCQAdaptiveSeeding(markers=marker_dict_hierarchical, quantile=0.9)
         tl.label(adata, strategy1, key_added="labels_1")
 
-        strategy2 = strategies.OtsuAdaptiveThresholding(markers=marker_dict_hierarchical)
+        strategy2 = strategies.OtsuAdaptiveSeeding(markers=marker_dict_hierarchical)
         tl.label(adata, strategy2, key_added="labels_2")
 
-        strategy3 = strategies.GraphScorePropagation(markers=marker_dict_hierarchical)
+        strategy3 = strategies.GraphScoreSeeding(markers=marker_dict_hierarchical)
         tl.label(adata, strategy3, key_added="labels_3")
 
         strategy_consensus = strategies.ConsensusVoting(
@@ -275,7 +265,7 @@ class TestComplexMixedPattern:
 
     def test_complex_mixed_qcq_realistic(self, adata_complex_mixed, marker_dict_complex_mixed):
         """QCQ should handle complex realistic patterns."""
-        strategy = strategies.QCQAdaptiveThresholding(
+        strategy = strategies.QCQAdaptiveSeeding(
             markers=marker_dict_complex_mixed, quantile=0.9, min_score=0.01
         )
         result = tl.label(adata_complex_mixed, strategy, key_added="qcq_labels")
@@ -293,9 +283,7 @@ class TestComplexMixedPattern:
 
     def test_complex_mixed_otsu_realistic(self, adata_complex_mixed, marker_dict_complex_mixed):
         """Otsu should adapt to complex mixed patterns."""
-        strategy = strategies.OtsuAdaptiveThresholding(
-            markers=marker_dict_complex_mixed, min_score=0.01
-        )
+        strategy = strategies.OtsuAdaptiveSeeding(markers=marker_dict_complex_mixed, min_score=0.01)
         result = tl.label(adata_complex_mixed, strategy, key_added="otsu_labels")
         labeling_result = result["otsu_labels"]
 
@@ -307,7 +295,7 @@ class TestComplexMixedPattern:
         self, adata_complex_mixed, marker_dict_complex_mixed
     ):
         """GraphScore should leverage spatial information in complex patterns."""
-        strategy = strategies.GraphScorePropagation(
+        strategy = strategies.GraphScoreSeeding(
             markers=marker_dict_complex_mixed, propagation_steps=3
         )
         result = tl.label(adata_complex_mixed, strategy, key_added="graph_labels")
@@ -322,15 +310,13 @@ class TestComplexMixedPattern:
         """Consensus voting on complex mixed should aggregate robustly."""
         adata = adata_complex_mixed.copy()
 
-        strategy1 = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict_complex_mixed, quantile=0.9
-        )
+        strategy1 = strategies.QCQAdaptiveSeeding(markers=marker_dict_complex_mixed, quantile=0.9)
         tl.label(adata, strategy1, key_added="labels_1")
 
-        strategy2 = strategies.OtsuAdaptiveThresholding(markers=marker_dict_complex_mixed)
+        strategy2 = strategies.OtsuAdaptiveSeeding(markers=marker_dict_complex_mixed)
         tl.label(adata, strategy2, key_added="labels_2")
 
-        strategy3 = strategies.GraphScorePropagation(markers=marker_dict_complex_mixed)
+        strategy3 = strategies.GraphScoreSeeding(markers=marker_dict_complex_mixed)
         tl.label(adata, strategy3, key_added="labels_3")
 
         strategy_consensus = strategies.ConsensusVoting(
@@ -362,12 +348,12 @@ class TestCrossPatternComparison:
     ):
         """QCQ should work on both ubiquitous and specific patterns."""
         # Test on ubiquitous
-        strategy = strategies.QCQAdaptiveThresholding(markers=marker_dict_ubiquitous)
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict_ubiquitous)
         result1 = tl.label(adata_ubiquitous_shared, strategy, key_added="qcq_labels")
         assert result1["qcq_labels"].labels is not None
 
         # Test on specific
-        strategy = strategies.QCQAdaptiveThresholding(markers=marker_dict_highly_specific)
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict_highly_specific)
         result2 = tl.label(adata_highly_specific, strategy, key_added="qcq_labels")
         assert result2["qcq_labels"].labels is not None
 
@@ -383,7 +369,7 @@ class TestCrossPatternComparison:
             (adata_hierarchical_overlap, marker_dict_hierarchical),
             (adata_complex_mixed, marker_dict_complex_mixed),
         ]:
-            strategy = strategies.OtsuAdaptiveThresholding(markers=markers)
+            strategy = strategies.OtsuAdaptiveSeeding(markers=markers)
             result = tl.label(adata, strategy, key_added="otsu_labels")
             labeling_result = result["otsu_labels"]
             assert isinstance(labeling_result, LabelingResult)
@@ -409,7 +395,7 @@ class TestCrossPatternComparison:
             (adata_complex_mixed, marker_dict_complex_mixed),
         ]
         for adata, markers in patterns:
-            strategy = strategies.GraphScorePropagation(markers=markers)
+            strategy = strategies.GraphScoreSeeding(markers=markers)
             result = tl.label(adata, strategy, key_added="graph_labels")
             labeling_result = result["graph_labels"]
             assert isinstance(labeling_result, LabelingResult)
@@ -421,7 +407,7 @@ class TestDTOValidationAcrossPatterns:
 
     def test_dto_validity_ubiquitous(self, adata_ubiquitous_shared, marker_dict_ubiquitous):
         """DTO should be complete for ubiquitous pattern."""
-        strategy = strategies.QCQAdaptiveThresholding(markers=marker_dict_ubiquitous)
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict_ubiquitous)
         result = tl.label(adata_ubiquitous_shared, strategy, key_added="qcq_labels")
         labeling_result = result["qcq_labels"]
 
@@ -441,7 +427,7 @@ class TestDTOValidationAcrossPatterns:
 
     def test_dto_validity_highly_specific(self, adata_highly_specific, marker_dict_highly_specific):
         """DTO should be complete for highly specific pattern."""
-        strategy = strategies.OtsuAdaptiveThresholding(markers=marker_dict_highly_specific)
+        strategy = strategies.OtsuAdaptiveSeeding(markers=marker_dict_highly_specific)
         result = tl.label(adata_highly_specific, strategy, key_added="otsu_labels")
         labeling_result = result["otsu_labels"]
 
@@ -453,7 +439,7 @@ class TestDTOValidationAcrossPatterns:
 
     def test_dto_validity_hierarchical(self, adata_hierarchical_overlap, marker_dict_hierarchical):
         """DTO should be complete for hierarchical pattern."""
-        strategy = strategies.GraphScorePropagation(markers=marker_dict_hierarchical)
+        strategy = strategies.GraphScoreSeeding(markers=marker_dict_hierarchical)
         result = tl.label(adata_hierarchical_overlap, strategy, key_added="graph_labels")
         labeling_result = result["graph_labels"]
 
@@ -464,7 +450,7 @@ class TestDTOValidationAcrossPatterns:
 
     def test_dto_validity_complex_mixed(self, adata_complex_mixed, marker_dict_complex_mixed):
         """DTO should be complete for complex mixed pattern."""
-        strategy = strategies.QCQAdaptiveThresholding(markers=marker_dict_complex_mixed)
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict_complex_mixed)
         result = tl.label(adata_complex_mixed, strategy, key_added="qcq_labels")
         labeling_result = result["qcq_labels"]
 

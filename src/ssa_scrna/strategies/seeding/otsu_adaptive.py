@@ -6,10 +6,10 @@ import pandas as pd
 import scanpy as sc
 from anndata import AnnData
 
-from .base import BaseLabelingStrategy, LabelingResult
+from ..base import BaseLabelingStrategy, LabelingResult
 
 
-class OtsuAdaptiveThresholding(BaseLabelingStrategy):
+class OtsuAdaptiveSeeding(BaseLabelingStrategy):
     """
     Otsu's Adaptive Thresholding for Seed Generation.
 
@@ -49,7 +49,7 @@ class OtsuAdaptiveThresholding(BaseLabelingStrategy):
 
     @property
     def name(self) -> str:
-        return "otsu_adaptive"
+        return "otsu_adaptive_seeding"
 
     def _calculate_otsu_threshold(self, vals: np.ndarray) -> float:
         """Pure numpy implementation of Otsu's thresholding."""

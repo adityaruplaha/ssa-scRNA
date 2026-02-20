@@ -5,12 +5,12 @@ import pandas as pd
 import scanpy as sc
 from anndata import AnnData
 
-from .base import BaseLabelingStrategy, LabelingResult
+from ..base import BaseLabelingStrategy, LabelingResult
 
 
-class QCQAdaptiveThresholding(BaseLabelingStrategy):
+class QCQAdaptiveSeeding(BaseLabelingStrategy):
     """
-    Quality-Checked Quantile (QCQ) Adaptive Thresholding.
+    Quality-Checked Quantile (QCQ) Adaptive Thresholding for Seed Generation.
 
     Assigns cell labels based on marker gene signatures. A cell is assigned a label if:
     1. Its score for a cell type exceeds the population-based quantile threshold (adaptive).
@@ -46,7 +46,7 @@ class QCQAdaptiveThresholding(BaseLabelingStrategy):
 
     @property
     def name(self) -> str:
-        return "qcq_adaptive"
+        return "qcq_adaptive_seeding"
 
     def execute_on(self, adata: AnnData) -> LabelingResult:
         # 1. Calculate Scores

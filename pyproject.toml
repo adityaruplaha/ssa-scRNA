@@ -1,6 +1,6 @@
 [project]
 name = "ssa-scrna"
-version = "0.1.0"
+version = "0.1.1"
 description = "Semi-supervised annotation of scRNA-seq data"
 readme = "README.md"
 license = { text = "BSD-3-Clause" }

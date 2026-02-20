@@ -6,10 +6,10 @@ import scanpy as sc
 import scipy.sparse as sp
 from anndata import AnnData
 
-from .base import BaseLabelingStrategy, LabelingResult
+from ..base import BaseLabelingStrategy, LabelingResult
 
 
-class GraphScorePropagation(BaseLabelingStrategy):
+class GraphScoreSeeding(BaseLabelingStrategy):
     """
     GCN-Style Graph Score Propagation for Seed Generation.
 
@@ -67,7 +67,7 @@ class GraphScorePropagation(BaseLabelingStrategy):
 
     @property
     def name(self) -> str:
-        return "graph_prop"
+        return "graph_score_seeding"
 
     def _get_initial_scores(self, adata: AnnData) -> pd.DataFrame:
         """Calculates $Y_0$: The initial raw marker scores."""

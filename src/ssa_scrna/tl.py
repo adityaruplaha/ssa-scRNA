@@ -26,7 +26,7 @@ async def label_async(
         The annotated data matrix to label.
     strategy : BaseLabelingStrategy
         A single labeling strategy to apply.
-    key_added : str, optional
+    key_added : str | None, optional
         Key under which to add the labeling results in `adata.obs`. If None, an
         auto-generated key based on strategy name will be used.
 
@@ -121,7 +121,7 @@ def label(
         - Single Strategy: Executed sequentially; key is taken from `key_added` or auto-generated.
         - Sequence[Strategy]: Executed in parallel; keys are auto-generated based on strategy name.
         - Dict[str, Strategy]: Executed in parallel; keys are taken directly from the dictionary.
-    key_added : str, optional
+    key_added : str | None, optional
         Key for `adata.obs`. Used ONLY if `strategies` is a single object.
     n_jobs : int, default 4
         Number of threads to use when running a batch.

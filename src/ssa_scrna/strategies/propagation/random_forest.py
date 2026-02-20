@@ -1,10 +1,8 @@
-from typing import Optional
-
 import pandas as pd
 from anndata import AnnData
 from sklearn.ensemble import RandomForestClassifier
 
-from .base import LabelingResult
+from ..base import LabelingResult
 from .ml_base import BaseMLPropagation
 
 
@@ -20,7 +18,7 @@ class RandomForestPropagation(BaseMLPropagation):
         unknown_label: str = "unknown",
         keep_seeds: bool = True,
         n_estimators: int = 100,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
         **kwargs,
     ):
         super().__init__(seed_key, obsm_key, unknown_label, keep_seeds)

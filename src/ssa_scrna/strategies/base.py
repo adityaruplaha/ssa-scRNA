@@ -54,7 +54,7 @@ class LabelingResult:
 
         Parameters
         ----------
-        key : Optional[str], default=None
+        key : str | None, default=None
             A unique key under which to save the main labels in .obs. If None, a unique
             key will be generated based on the strategy name. The main labels will be
             saved under this key, and any auxiliary data will be saved under subkeys

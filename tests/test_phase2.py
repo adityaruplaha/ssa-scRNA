@@ -4,6 +4,8 @@ Tests for Phase 2: ML Propagation Strategies.
 Tests machine learning-based label propagation strategies:
 - KNNPropagation: k-Nearest Neighbors classifier
 - RandomForestPropagation: Random Forest classifier
+- NeuralNetworkPropagation: MLP classifier
+- SVMPropagation: Support Vector Machine classifier
 - NearestCentroidPropagation: Nearest Centroid classifier
 """
 
@@ -270,6 +272,110 @@ class TestRandomForestPropagation:
         # Seeds (cells 125-130) should remain Class B
         for i in range(125, 131):
             label = synthetic_adata_with_seeds.obs.loc[f"cell_{i}", "rf_seeds"]
+            assert label == "Class B", f"Seed cell_{i} should remain Class B"
+
+
+class TestSVMPropagation:
+    """Test suite for SVMPropagation strategy."""
+
+    def test_basic_execution(self, synthetic_adata_with_seeds):
+        """Test that SVM propagation runs without error."""
+        strategy = strategies.SVMPropagation(seed_key="seed_labels", obsm_key="X_pca")
+
+        result = tl.label(synthetic_adata_with_seeds, strategy, key_added="svm_prop")
+
+        assert "svm_prop" in result
+        assert "svm_prop" in synthetic_adata_with_seeds.obs
+
+    def test_probabilities_sum_to_one(self, synthetic_adata_with_seeds):
+        """Test that predicted probabilities sum to 1.0 per cell when enabled."""
+        strategy = strategies.SVMPropagation(
+            seed_key="seed_labels",
+            obsm_key="X_pca",
+            probability=True,
+        )
+
+        result = tl.label(synthetic_adata_with_seeds, strategy, key_added="svm_probs")
+        result["svm_probs"]
+
+        assert "svm_probs_probabilities" in synthetic_adata_with_seeds.obsm
+        probs = synthetic_adata_with_seeds.obsm["svm_probs_probabilities"]
+
+        row_sums = probs.sum(axis=1)
+        assert np.allclose(row_sums, 1.0), "Probabilities should sum to 1.0 per cell"
+
+    def test_seeds_preserved(self, synthetic_adata_with_seeds):
+        """Test that seed cells keep their original labels."""
+        strategy = strategies.SVMPropagation(
+            seed_key="seed_labels",
+            obsm_key="X_pca",
+            keep_seeds=True,
+        )
+
+        tl.label(synthetic_adata_with_seeds, strategy, key_added="svm_seeds")
+
+        for i in range(6):
+            label = synthetic_adata_with_seeds.obs.loc[f"cell_{i}", "svm_seeds"]
+            assert label == "Class A", f"Seed cell_{i} should remain Class A"
+
+        for i in range(125, 131):
+            label = synthetic_adata_with_seeds.obs.loc[f"cell_{i}", "svm_seeds"]
+            assert label == "Class B", f"Seed cell_{i} should remain Class B"
+
+
+class TestNeuralNetworkPropagation:
+    """Test suite for NeuralNetworkPropagation strategy."""
+
+    def test_basic_execution(self, synthetic_adata_with_seeds):
+        """Test that neural network propagation runs without error."""
+        strategy = strategies.NeuralNetworkPropagation(
+            seed_key="seed_labels",
+            obsm_key="X_pca",
+            max_iter=100,
+            random_state=0,
+        )
+
+        result = tl.label(synthetic_adata_with_seeds, strategy, key_added="nn_prop")
+
+        assert "nn_prop" in result
+        assert "nn_prop" in synthetic_adata_with_seeds.obs
+
+    def test_probabilities_sum_to_one(self, synthetic_adata_with_seeds):
+        """Test that predicted probabilities sum to 1.0 per cell."""
+        strategy = strategies.NeuralNetworkPropagation(
+            seed_key="seed_labels",
+            obsm_key="X_pca",
+            max_iter=100,
+            random_state=0,
+        )
+
+        result = tl.label(synthetic_adata_with_seeds, strategy, key_added="nn_probs")
+        result["nn_probs"]
+
+        assert "nn_probs_probabilities" in synthetic_adata_with_seeds.obsm
+        probs = synthetic_adata_with_seeds.obsm["nn_probs_probabilities"]
+
+        row_sums = probs.sum(axis=1)
+        assert np.allclose(row_sums, 1.0), "Probabilities should sum to 1.0 per cell"
+
+    def test_seeds_preserved(self, synthetic_adata_with_seeds):
+        """Test that seed cells keep their original labels."""
+        strategy = strategies.NeuralNetworkPropagation(
+            seed_key="seed_labels",
+            obsm_key="X_pca",
+            keep_seeds=True,
+            max_iter=100,
+            random_state=0,
+        )
+
+        tl.label(synthetic_adata_with_seeds, strategy, key_added="nn_seeds")
+
+        for i in range(6):
+            label = synthetic_adata_with_seeds.obs.loc[f"cell_{i}", "nn_seeds"]
+            assert label == "Class A", f"Seed cell_{i} should remain Class A"
+
+        for i in range(125, 131):
+            label = synthetic_adata_with_seeds.obs.loc[f"cell_{i}", "nn_seeds"]
             assert label == "Class B", f"Seed cell_{i} should remain Class B"
 
 

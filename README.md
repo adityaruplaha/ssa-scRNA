@@ -47,31 +47,34 @@ markers = {
     # ... more cell types
 }
 
-# Phase 1: Generate predictions from multiple strategies
-strategies = {
+# Phase 1: Generate seed labels from multiple strategies (no consensus)
+seed_strategies = {
     "seeds_qcq": ssa.strategies.QCQAdaptiveThresholding(markers=markers),
     "seeds_otsu": ssa.strategies.OtsuAdaptiveThresholding(markers=markers),
     "seeds_graph": ssa.strategies.GraphScorePropagation(markers=markers),
 }
-results = ssa.tl.label(adata, strategies=strategies, n_jobs=4)
+ssa.tl.label(adata, strategies=seed_strategies, n_jobs=4)
 
-# Combine Phase 1 predictions with consensus voting
-consensus_seed = ssa.strategies.ConsensusVoting(
-    keys=list(strategies.keys()),
-    majority_fraction=0.66
-)
-ssa.tl.label(adata, strategies=consensus_seed, key_added="seeds_consensus")
+# Phase 2: Propagate labels independently from each seed source
+# This allows different propagation methods to learn from different seed qualities
+propagation_methods = ["knn", "rf"]  # KNN and Random Forest
+all_propagated_labels = []
 
-# Phase 2: Propagate labels to unlabeled cells
-propagators = {
-    "prop_knn": ssa.strategies.KNNPropagation(seed_key="seeds_consensus"),
-    "prop_rf": ssa.strategies.RandomForestPropagation(seed_key="seeds_consensus"),
-}
-ssa.tl.label(adata, strategies=propagators, n_jobs=2)
+for seed_name in seed_strategies.keys():
+    propagators = {
+        f"prop_{method}_{seed_name.split('_')[1]}": (
+            ssa.strategies.KNNPropagation(seed_key=seed_name)
+            if method == "knn"
+            else ssa.strategies.RandomForestPropagation(seed_key=seed_name)
+        )
+        for method in propagation_methods
+    }
+    ssa.tl.label(adata, strategies=propagators, n_jobs=2)
+    all_propagated_labels.extend(propagators.keys())
 
-# Final consensus
+# Phase 3: Final consensus across all propagated predictions
 final_consensus = ssa.strategies.ConsensusVoting(
-    keys=list(propagators.keys()),
+    keys=all_propagated_labels,
     majority_fraction=0.66
 )
 ssa.tl.label(adata, strategies=final_consensus, key_added="labels_final")
@@ -127,8 +130,8 @@ uv run ssa-examples pbmc3k
 This demonstrates:
 - QC filtering with data-driven thresholds
 - Feature preprocessing (HVGs, PCA, neighbors)
-- Phase 1 seeding with 4 strategies + consensus
-- Phase 2 propagation with 3 ML algorithms
+- Phase 1 seeding with 4 independent strategies (no early consensus)
+- Phase 2 propagation from each seed independently (3 × 4 combinations)
 - Baseline clustering (Leiden at multiple resolutions)
 - Visualization (UMAP, t-SNE)
 - Quantitative ablation metrics (ARI, NMI)
@@ -173,22 +176,28 @@ Normalization (log1p)
     ↓
 Preprocessing (as needed: HVG selection, PCA, neighbors, etc.)
     ↓
-┌─────────────────────────────────────┐
-│   PHASE 1: Weak Labeling Strategies │
-│  (QCQ, Otsu, Graph, DPMM, etc.)     │
-└─────────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│   PHASE 1: Weak Labeling Strategies      │
+│  (QCQ, Otsu, Graph, DPMM, etc.)          │
+│  → Generate independent seed labels      │
+└──────────────────────────────────────────┘
     ↓
-Consensus Voting (to generate seed labels)
+┌──────────────────────────────────────────┐
+│   PHASE 2: Independent Propagation       │
+│  Each propagator (KNN, RF, Centroid)     │
+│  learns from EACH seed independently     │
+│  → Generates: prop_<method>_<seed>       │
+└──────────────────────────────────────────┘
     ↓
-┌─────────────────────────────────────┐
-│   PHASE 2: Propagation Methods      │
-│    (KNN, RF, Centroid, etc.)        │
-└─────────────────────────────────────┘
-    ↓
-Final Consensus Voting (to generate final labels)
+Final Consensus Voting (across all Phase 2 outputs)
     ↓
 Quantitative Evaluation (ARI, NMI)
 ```
+
+**Design rationale:**
+- Phase 1 generates independent seeds from diverse methods
+- Phase 2 propagates from each seed independently, allowing diverse approaches to coexist
+- Final consensus aggregates all Phase 2 predictions for robust classification
 
 
 ## Implementation
@@ -214,14 +223,14 @@ markers = {
 
 ### Phase 1: Initial Labeling
 
-Use any (or many!, taking consensus) of the following strategies to generate seed labels:
+Use any (or many!) of the following strategies to generate independent seed labels. Each is propagated independently in Phase 2:
 
 | Strategy | Class | Description |
 |----------|-------|-------------|
 | QCQ Adaptive Thresholding | `QCQAdaptiveThresholding` | Quantile-based marker scoring with data-driven thresholds |
 | Otsu Adaptive Thresholding | `OtsuAdaptiveThresholding` | Automatic threshold selection via Otsu's method |
 | Graph Score Propagation | `GraphScorePropagation` | Network-based marker co-expression scoring |
-| Dirichlet Process Labeling | `DirichletProcessLabeling` | Probabilistic soft clustering with confidence scores |
+| Dirichlet Process Labeling | `DirichletProcessLabeling` | Bayesian mixture model with automatic component selection and probabilistic confidence bounds |
 
 **Common Parameters:**
 - `markers` (dict): Cell type → marker gene list mapping
@@ -258,12 +267,12 @@ Obtain a final consensus label by combining multiple strategies with majority vo
 
 **Example Usage:**
 ```python
-# Combine 3 seed strategies
+# Combine propagation outputs from all seeds at the final stage
 consensus = ssa.strategies.ConsensusVoting(
-    keys=["seeds_qcq", "seeds_otsu", "seeds_graph"],
-    majority_fraction=0.66  # Supermajority: 2 out of 3
+    keys=["prop_knn_qcq", "prop_knn_otsu", "prop_rf_qcq", "prop_rf_otsu"],
+    majority_fraction=0.66  # Supermajority
 )
-ssa.tl.label(adata, strategies=consensus, key_added="seeds_consensus")
+ssa.tl.label(adata, strategies=consensus, key_added="labels_final")
 ```
 
 #### Using `majority_fraction` for Consensus Voting
@@ -310,7 +319,7 @@ adata.obs columns:
 ├── seeds_dpmm             # DPMM strategy labels
 ├── seeds_dpmm_max_confidence    # DPMM confidence score
 ├── seeds_dpmm_is_confident      # DPMM confidence boolean
-└── seeds_consensus        # Consensus from majority voting
+# Note: seeds_consensus is no longer generated; seeds are propagated independently
 ```
 
 ## Performance Considerations

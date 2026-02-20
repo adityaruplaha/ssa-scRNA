@@ -2,7 +2,7 @@ import pandas as pd
 from anndata import AnnData
 from sklearn.neighbors import NearestCentroid
 
-from .base import LabelingResult
+from ..base import LabelingResult
 from .ml_base import BaseMLPropagation
 
 

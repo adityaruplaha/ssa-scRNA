@@ -1,22 +1,26 @@
 from .base import BaseLabelingStrategy, LabelingResult
 from .consensus import ConsensusVoting
-from .dpmm import DirichletProcessLabeling
-from .graph_score import GraphScorePropagation
-from .knn import KNNPropagation
-from .nearest_centroid import NearestCentroidPropagation
-from .otsu_adaptive import OtsuAdaptiveThresholding
-from .qcq_adaptive import QCQAdaptiveThresholding
-from .random_forest import RandomForestPropagation
+from .propagation.knn import KNNPropagation
+from .propagation.nearest_centroid import NearestCentroidPropagation
+from .propagation.neural_network import NeuralNetworkPropagation
+from .propagation.random_forest import RandomForestPropagation
+from .propagation.svm import SVMPropagation
+from .seeding.dpmm import DPMMClusteredAdaptiveSeeding
+from .seeding.graph_score import GraphScoreSeeding
+from .seeding.otsu_adaptive import OtsuAdaptiveSeeding
+from .seeding.qcq_adaptive import QCQAdaptiveSeeding
 
 __all__ = [
     "BaseLabelingStrategy",
     "LabelingResult",
-    "QCQAdaptiveThresholding",
-    "OtsuAdaptiveThresholding",
-    "GraphScorePropagation",
-    "DirichletProcessLabeling",
+    "QCQAdaptiveSeeding",
+    "OtsuAdaptiveSeeding",
+    "GraphScoreSeeding",
+    "DPMMClusteredAdaptiveSeeding",
     "ConsensusVoting",
     "KNNPropagation",
+    "NeuralNetworkPropagation",
     "RandomForestPropagation",
     "NearestCentroidPropagation",
+    "SVMPropagation",
 ]

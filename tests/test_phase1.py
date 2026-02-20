@@ -15,9 +15,7 @@ class TestQCQAdaptiveThresholding:
 
     def test_basic_execution(self, synthetic_adata, marker_dict):
         """Test that QCQ strategy runs without error and produces labels."""
-        strategy = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict, quantile=0.9, min_score=0.01
-        )
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01)
 
         result = tl.label(synthetic_adata, strategy, key_added="qcq_labels")
         labeling_result = result["qcq_labels"]
@@ -45,9 +43,7 @@ class TestQCQAdaptiveThresholding:
 
     def test_class_a_detection(self, synthetic_adata, marker_dict):
         """Test that cells with strong Class A markers get labeled."""
-        strategy = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict, quantile=0.8, min_score=0.01
-        )
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.8, min_score=0.01)
 
         tl.label(synthetic_adata, strategy, key_added="qcq_labels")
 
@@ -62,9 +58,7 @@ class TestQCQAdaptiveThresholding:
 
     def test_output_structure(self, synthetic_adata, marker_dict):
         """Test that output contains proper columns and types and payloads are valid."""
-        strategy = strategies.QCQAdaptiveThresholding(
-            markers=marker_dict, quantile=0.9, min_score=0.01
-        )
+        strategy = strategies.QCQAdaptiveSeeding(markers=marker_dict, quantile=0.9, min_score=0.01)
 
         result = tl.label(synthetic_adata, strategy, key_added="qcq_test")
         labeling_result = result["qcq_test"]
@@ -104,9 +98,7 @@ class TestOtsuAdaptiveThresholding:
 
     def test_basic_execution(self, synthetic_adata, marker_dict):
         """Test that Otsu strategy runs without error and produces labels."""
-        strategy = strategies.OtsuAdaptiveThresholding(
-            markers=marker_dict, bins=256, min_score=0.01
-        )
+        strategy = strategies.OtsuAdaptiveSeeding(markers=marker_dict, bins=256, min_score=0.01)
 
         result = tl.label(synthetic_adata, strategy, key_added="otsu_labels")
         labeling_result = result["otsu_labels"]
@@ -134,9 +126,7 @@ class TestOtsuAdaptiveThresholding:
 
     def test_threshold_calculation(self, synthetic_adata, marker_dict):
         """Test that Otsu thresholds are properly calculated."""
-        strategy = strategies.OtsuAdaptiveThresholding(
-            markers=marker_dict, bins=256, min_score=0.001
-        )
+        strategy = strategies.OtsuAdaptiveSeeding(markers=marker_dict, bins=256, min_score=0.001)
 
         result = tl.label(synthetic_adata, strategy, key_added="otsu_test")
         result["otsu_test"]
@@ -153,9 +143,7 @@ class TestOtsuAdaptiveThresholding:
 
     def test_seed_generation(self, synthetic_adata, marker_dict):
         """Test that high-signal cells are labeled as seeds."""
-        strategy = strategies.OtsuAdaptiveThresholding(
-            markers=marker_dict, bins=256, min_score=0.01
-        )
+        strategy = strategies.OtsuAdaptiveSeeding(markers=marker_dict, bins=256, min_score=0.01)
 
         tl.label(synthetic_adata, strategy, key_added="otsu_seeds")
 
@@ -170,7 +158,7 @@ class TestGraphScorePropagation:
 
     def test_basic_execution(self, synthetic_adata, marker_dict):
         """Test that GraphScore strategy runs without error."""
-        strategy = strategies.GraphScorePropagation(
+        strategy = strategies.GraphScoreSeeding(
             markers=marker_dict,
             alpha=0.8,
             n_iterations=10,
@@ -202,7 +190,7 @@ class TestGraphScorePropagation:
 
     def test_propagated_scores_stored(self, synthetic_adata, marker_dict):
         """Test that diffused scores are stored after graph propagation."""
-        strategy = strategies.GraphScorePropagation(
+        strategy = strategies.GraphScoreSeeding(
             markers=marker_dict,
             alpha=0.8,
             n_iterations=10,
@@ -224,7 +212,7 @@ class TestGraphScorePropagation:
     def test_alpha_parameter_effect(self, synthetic_adata, marker_dict):
         """Test that different alpha values produce different results."""
         # Smaller alpha (more original signal)
-        strategy1 = strategies.GraphScorePropagation(
+        strategy1 = strategies.GraphScoreSeeding(
             markers=marker_dict,
             alpha=0.2,
             n_iterations=10,
@@ -233,7 +221,7 @@ class TestGraphScorePropagation:
         )
 
         # Larger alpha (more neighborhood influence)
-        strategy2 = strategies.GraphScorePropagation(
+        strategy2 = strategies.GraphScoreSeeding(
             markers=marker_dict,
             alpha=0.9,
             n_iterations=10,
@@ -258,7 +246,7 @@ class TestGraphScorePropagation:
 
     def test_seed_confidence(self, synthetic_adata, marker_dict):
         """Test that clear signal cells get labeled."""
-        strategy = strategies.GraphScorePropagation(
+        strategy = strategies.GraphScoreSeeding(
             markers=marker_dict, alpha=0.8, n_iterations=10, margin=0.05, min_score=0.0001
         )
 

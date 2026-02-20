@@ -66,34 +66,35 @@ After  iterations, a "margin gate" is applied: a cell is only labeled if its hig
 
 ### 4. Dirichlet Process Mixture Models (`DirichletProcessLabeling`)
 
-**Concept:** Probabilistic confidence bounds. It models the multi-dimensional marker expression of each cell type as a mixture of two Gaussian distributions (Signal vs. Noise) and uses Variational Inference to calculate the posterior probability of a cell belonging to the Signal component.
+**Concept:** Automatic expression regime detection using nonparametric Bayesian methods. Instead of assuming a fixed bimodal structure (Signal vs. Noise), the algorithm discovers the optimal number of expression clusters inherent in the marker gene data via the Dirichlet Process prior.
 
-* **Expected Behavior:** Slices the log-normalized data into  matrices (where  is the number of markers for a specific cell type). Fits a Bayesian Gaussian Mixture Model. The Dirichlet Process prior () automatically handles complexity—if the distribution is unimodal (pure noise), it effectively zeroes out the second component.
+* **Expected Behavior:** For each cell type, slices the log-normalized data into an $N \times M$ matrix (where $M$ is the number of markers). Fits a Bayesian Gaussian Mixture Model with $n_{components} = \max(2, N/10)$ and Dirichlet Process prior ($\gamma$). At convergence, the DP prior automatically collapses inactive components.
+
+  The algorithm then:
+  1. Ranks components by effective membership size (summed posterior probabilities)
+  2. Designates the largest component as "background" (typically low/absent expression)
+  3. Filters: keeps only components with mean marker expression **higher** than the background component
+  4. Returns $\text{prob\_signal}$ = sum of posterior probabilities for all high-expression components
+  5. Assigns labels via majority rule: if a cell is confident ($\text{prob\_signal} \geq \theta$) in multiple cell types, picks the highest
+
 * **Design Considerations:**
-* *True Probabilities:* Yields rigorous mathematical confidence bounds () rather than arbitrary continuous scores, mapped directly to `.obsm['posterior_probabilities']`.
-* *Threaded Execution:* Variational Inference is computationally expensive. This strategy internally maps the independent cell-type BGM fits to a `ThreadPoolExecutor`, drastically cutting execution time.
+  * *True Probabilities:* Yields rigorous mathematical confidence bounds ($\text{prob\_signal} \in [0,1]$) rather than arbitrary continuous scores, mapped directly to `.obsm['posterior_probabilities']`.
+  * *Automatic Model Selection:* No external hyperparameter for the number of clusters. The DP prior ($\gamma$) controls collapse aggressiveness; lower values favor fewer active components.
+  * *Threaded Execution:* DPMM fitting is computationally expensive. Independent per-cell-type model fits are mapped to a `ThreadPoolExecutor`, drastically reducing wall-clock time.
+  * *Background-Relative:* By anchoring signal detection to the largest (typically noisiest) component, the method is robust to marker gene quality and avoids absolute expression thresholds.
 
 
 
 ---
 
-## Phase 1.5: The Aggregator
+## Phase 2: Label Propagation (Generalization via Independent Seeds)
 
-### Consensus Voting (`ConsensusVoting`)
+**Architecture Key Change:** Rather than consensus-ing Phase 1 seeds into a single vector and propagating from that, we propagate from **each Phase 1 seed independently**. This allows:
+- Each propagation method to learn from diverse seed sources
+- Comparison of how different propagators respond to different seeds
+- Preservation of seed diversity until the final consensus step
 
-**Concept:** The bridge between Phase 1 and Phase 2. It takes the independent, conflicting opinions of multiple weak labelers and distills them into a single, high-fidelity ground truth vector.
-
-* **Expected Behavior:** Performs a row-wise evaluation across  label columns. It filters out abstentions (`"unknown"`). If the most frequent remaining label meets the `majority_fraction` (e.g.,  for a 2/3 supermajority), it becomes the consensus seed. Otherwise, the cell reverts to `"unknown"`.
-* **Design Considerations:** * *Robustness via Ensemble:* Averages out the algorithmic biases of the individual Phase 1 strategies.
-* *Polymorphic Use:* This strategy is agnostic to *what* it is ensembling. It is used to aggregate Phase 1 weak labels, but is seamlessly reused at the very end of the pipeline to aggregate Phase 2 ML predictions.
-
-
-
----
-
-## Phase 2: Label Propagation (Generalization)
-
-The goal of Phase 2 is **recall**. Taking the sparse  of cells labeled in Phase 1 (the seeds), these strategies train classical Machine Learning algorithms to classify the remaining unstructured manifold.
+The goal of Phase 2 is **recall**. Taking the sparse labelings from Phase 1 (seeds), these strategies train classical Machine Learning algorithms to classify the remaining unlabeled manifold.
 
 **Shared Design Considerations for Phase 2:**
 
