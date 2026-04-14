@@ -1,2 +1,3 @@
 # ssa-scRNA
-Semi-Supervised Annotation of scRNA-seq Data
+
+Previous name and home for adityaruplaha/scAICME. Now a redirect stub.
